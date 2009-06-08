@@ -10,6 +10,7 @@ require 'jeweler/generator/minitest_mixin'
 require 'jeweler/generator/rspec_mixin'
 require 'jeweler/generator/shoulda_mixin'
 require 'jeweler/generator/testunit_mixin'
+require 'jeweler/generator/testspec_mixin'
 
 class Jeweler
   class NoGitUserName < StandardError
