@@ -1,5 +1,14 @@
-*.sw?
+## OS STUFF
 .DS_Store
+
+## TM SPECIFIC
+*.tmproj
+tmtags
+
+## PROJECT::GENERAL
+*.sw?
 coverage
 rdoc
 pkg
+
+## PROJECT::SPECIFIC
