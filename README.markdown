@@ -48,6 +48,7 @@ It supports a number of options:
 
  * --create-repo: in addition to preparing a project, it create an repo up on GitHub and enable RubyGem generation
  * --testunit: generate test_helper.rb and test ready for test/unit
+ * --testspec: generate test_helper.rb and test ready for test/spec
  * --minitest: generate test_helper.rb and test ready for minitest 
  * --shoulda: generate test_helper.rb and test ready for shoulda (this is the default)
  * --rspec: generate spec_helper.rb and spec ready for rspec
