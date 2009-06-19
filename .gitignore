@@ -1,6 +1,17 @@
+## OS STUFF
+.DS_Store
+
+## TM SPECIFIC
+*.tmproj
+tmtags
+
+## PROJECT::GENERAL
+
+## PROJECT::SPECIFIC
+*.sw?
 coverage
-pkg
 rdoc
+pkg
 tags
 test/tmp
 test/version_tmp
