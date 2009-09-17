@@ -13,8 +13,9 @@ begin
 <% if should_setup_rubyforge %>
     gem.rubyforge_project = "<%= project_name %>"
 <% end %>
+    # gem.add_dependency('dependency', '>=x.x.x')
 <% development_dependencies.each do |dependency| %>
-    gem.add_development_dependency "<%= dependency %>"
+    gem.add_development_dependency("<%= dependency %>")
 <% end %>
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
@@ -138,6 +139,30 @@ Rake::RDocTask.new do |rdoc|
   rdoc.title = "<%= project_name %> v#{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
+
+desc 'Build the rdoc HTML Files'
+task :docs do
+  version = File.exist?('VERSION') ? IO.read('VERSION').chomp : "[Unknown]"
+    
+  sh "sdoc -N --title '<%= project_name %> v#{version}' lib/"
+end
+
+namespace :docs do
+  
+  desc 'Remove rdoc products'
+  task :remove => [:clobber_rdoc]
+  
+  desc 'Force a rebuild of the RDOC files'
+  task :rebuild => [:rerdoc]
+  
+  desc 'Build docs, and open in browser for viewing (specify BROWSER)'
+  task :open => [:docs] do
+    browser = ENV["BROWSER"] || "safari"
+    sh "open -a #{browser} doc/index.html"
+  end
+  
 end
 
 <% when :yard %>
