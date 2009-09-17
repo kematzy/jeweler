@@ -27,6 +27,7 @@ end
 require 'spec/rake/spectask'
 Spec::Rake::SpecTask.new(:<%= test_task %>) do |<%= test_task %>|
   <%= test_task %>.libs << 'lib' << '<%= test_dir %>'
+  <%= test_task %>.spec_opts = ["--color", "--format", "specdoc", "--require", "spec/spec_helper.rb"]  
   <%= test_task %>.spec_files = FileList['<%= test_pattern %>']
 end
 <% when :micronaut %>
@@ -48,6 +49,7 @@ end
 <% when :rspec %>
 Spec::Rake::SpecTask.new(:rcov) do |spec|
   spec.libs << 'lib' << 'spec'
+  spec.spec_opts = ["--color", "--format", "specdoc", "--require", "spec/spec_helper.rb"]
   spec.pattern = '<%= test_pattern %>'
   spec.rcov = true
 end
@@ -87,16 +89,34 @@ task :default => :<%= default_task %>
 
 require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
-  if File.exist?('VERSION.yml')
-    config = YAML.load(File.read('VERSION.yml'))
-    version = "#{config[:major]}.#{config[:minor]}.#{config[:patch]}"
-  else
-    version = ""
-  end
+  version = File.exist?('VERSION') ? IO.read('VERSION').chomp : "[Unknown]"
 
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "<%= project_name %> #{version}"
+  rdoc.title = "<%= project_name %> v#{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
+desc 'Build the rdoc HTML Files'
+task :docs do
+  version = File.exist?('VERSION') ? IO.read('VERSION').chomp : "[Unknown]"
+    
+  sh "sdoc -N --title '<%= project_name %> v#{version}' lib/"
+end
+
+namespace :docs do
+  
+  desc 'Remove rdoc products'
+  task :remove => [:clobber_rdoc]
+  
+  desc 'Force a rebuild of the RDOC files'
+  task :rebuild => [:rerdoc]
+  
+  desc 'Build docs, and open in browser for viewing (specify BROWSER)'
+  task :open => [:docs] do
+    browser = ENV["BROWSER"] || "safari"
+    sh "open -a #{browser} doc/index.html"
+  end
+  
 end
 
