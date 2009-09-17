@@ -30,7 +30,7 @@ class Jeweler
       end
 
       def test_filename
-        "#{require_name}_spec.rb"
+        "#{require_name.gsub('-', '/')}_spec.rb"
       end
 
       def test_helper_filename
