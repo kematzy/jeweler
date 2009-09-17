@@ -79,9 +79,13 @@ class Jeweler
       end
 
       namespace :version do
-        desc "Writes out an explicit version. Respects the following environment variables, or defaults to 0: MAJOR, MINOR, PATCH"
+        desc "Writes out an explicit version. V=0.0.0 or Respects the following environment variables, or defaults to 0: MAJOR, MINOR, PATCH"
         task :write do
-          major, minor, patch = ENV['MAJOR'].to_i, ENV['MINOR'].to_i, ENV['PATCH'].to_i
+          if ENV['V']
+            major, minor, patch = ENV['V'].split('.').map { |i| i.to_i }
+          else
+            major, minor, patch = ENV['MAJOR'].to_i, ENV['MINOR'].to_i, ENV['PATCH'].to_i
+          end
           jeweler.write_version(major, minor, patch, :announce => false, :commit => false)
           $stdout.puts "Updated version: #{jeweler.version}"
         end
