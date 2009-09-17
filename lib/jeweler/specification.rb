@@ -28,14 +28,15 @@ class Jeweler
       Dir.chdir(base_dir) do
         if blank?(files) && File.directory?(File.join(base_dir, '.git'))
           repo = Git.open(base_dir)
-          self.files = repo.ls_files.keys
+          self.files = repo.ls_files.keys - repo.lib.ignored_files
         end
 
-        if blank?(test_files)
-          self.test_files = FileList['{spec,test,examples}/**/*.rb']
+        if blank?(test_files) && File.directory?(File.join(base_dir, '.git'))
+          repo = Git.open(base_dir)
+          self.test_files = FileList['{spec,test,examples}/**/*.rb'] - repo.lib.ignored_files
         end
 
-        if blank?(executable)
+        if blank?(executables)
           self.executables = Dir["bin/*"].map { |f| File.basename(f) }
         end
 

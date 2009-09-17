@@ -6,12 +6,36 @@ Given /^I want cucumber stories$/ do
   @use_cucumber = true
 end
 
+Given /^I do not want reek$/ do
+  @use_reek = false
+end
+
+Given /^I want reek$/ do
+  @use_reek = true
+end
+
+Given /^I do not want roodi$/ do
+  @use_roodi = false
+end
+
+Given /^I want roodi$/ do
+  @use_roodi = true
+end
+
 And /^I do not want rubyforge setup$/ do
   @use_rubyforge = false
 end
 
 And /^I want rubyforge setup$/ do
   @use_rubyforge = true
+end
+
+Given /^I want to use yard instead of rdoc$/ do
+  @documentation_framework = "yard"
+end
+
+Given /^I want to use rdoc instead of yard$/ do
+  @documentation_framework = "rdoc"
 end
 
 
@@ -37,9 +61,14 @@ Given /^I set JEWELER_OPTS env variable to "(.*)"$/ do |val|
   ENV['JEWELER_OPTS'] = val
 end
 
-When /^I generate a (.*)project named '((?:\w|-|_)+)' that is '(.*)'$/ do |testing_framework, name, summary|
+When /^I generate a (.*)project named '((?:\w|-|_)+)' that is '([^']*)'$/ do |testing_framework, name, summary|
+  When "I generate a #{testing_framework}project named '#{name}' that is '#{summary}' and described as ''"
+end
+
+When /^I generate a (.*)project named '((?:\w|-|_)+)' that is '([^']*)' and described as '([^']*)'$/ do |testing_framework, name, summary, description|
   @name = name
   @summary = summary
+  @description = description
 
   testing_framework = testing_framework.squeeze.strip
   unless testing_framework.blank?
@@ -50,9 +79,13 @@ When /^I generate a (.*)project named '((?:\w|-|_)+)' that is '(.*)'$/ do |testi
   arguments = ['--directory',
                "#{@working_dir}/#{@name}",
                '--summary', @summary,
+               '--description', @description,
                 @use_cucumber ? '--cucumber' : nil,
                 @testing_framework ? "--#{@testing_framework}" : nil,
                 @use_rubyforge ? '--rubyforge' : nil,
+                @use_roodi ? '--roodi' : nil,
+                @use_reek ? '--reek' : nil,
+                @documentation_framework ? "--#{@documentation_framework}" : nil,
                 @name].compact
 
   @stdout = OutputCatcher.catch_out do

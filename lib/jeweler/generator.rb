@@ -12,6 +12,9 @@ require 'jeweler/generator/shoulda_mixin'
 require 'jeweler/generator/testunit_mixin'
 require 'jeweler/generator/testspec_mixin'
 
+require 'jeweler/generator/rdoc_mixin'
+require 'jeweler/generator/yard_mixin'
+
 class Jeweler
   class NoGitUserName < StandardError
   end
@@ -29,20 +32,28 @@ class Jeweler
   end    
 
   class Generator    
-    attr_accessor :target_dir, :user_name, :user_email, :summary, :testing_framework,
-                  :project_name, :github_username, :github_token,
-                  :repo, :should_create_repo, :should_use_cucumber, :should_setup_rubyforge
+    attr_accessor :target_dir, :user_name, :user_email, :summary,
+                  :description, :project_name, :github_username, :github_token,
+                  :repo, :should_create_repo, 
+                  :testing_framework, :documentation_framework,
+                  :should_use_cucumber, :should_setup_gemcutter,
+                  :should_setup_rubyforge, :should_use_reek, :should_use_roodi,
+                  :development_dependencies
 
     DEFAULT_TESTING_FRAMEWORK = :shoulda
+    DEFAULT_DOCUMENTATION_FRAMEWORK = :rdoc
 
     def initialize(project_name, options = {})
       if project_name.nil? || project_name.squeeze.strip == ""
         raise NoGitHubRepoNameGiven
       end
 
+      self.development_dependencies = []
+
       self.project_name   = project_name
 
       self.testing_framework  = (options[:testing_framework] || DEFAULT_TESTING_FRAMEWORK).to_sym
+      self.documentation_framework = options[:documentation_framework] || DEFAULT_DOCUMENTATION_FRAMEWORK
       begin
         generator_mixin_name = "#{self.testing_framework.to_s.capitalize}Mixin"
         generator_mixin = self.class.const_get(generator_mixin_name)
@@ -51,13 +62,27 @@ class Jeweler
         raise ArgumentError, "Unsupported testing framework (#{testing_framework})"
       end
 
+      begin
+        generator_mixin_name = "#{self.documentation_framework.to_s.capitalize}Mixin"
+        generator_mixin = self.class.const_get(generator_mixin_name)
+        extend generator_mixin
+      rescue NameError => e
+        raise ArgumentError, "Unsupported documentation framework (#{documentation_framework})"
+      end
+
 
       self.target_dir             = options[:directory] || self.project_name
 
       self.should_create_repo     = options[:create_repo]
-      self.summary                = options[:summary] || 'TODO'
+      self.summary                = options[:summary] || 'TODO: one-line summary of your gem'
+      self.description            = options[:description] || 'TODO: longer description of your gem'
       self.should_use_cucumber    = options[:use_cucumber]
+      self.should_use_reek        = options[:use_reek]
+      self.should_use_roodi       = options[:use_roodi]
+      self.should_setup_gemcutter = options[:gemcutter]
       self.should_setup_rubyforge = options[:rubyforge]
+
+      development_dependencies << "cucumber" if should_use_cucumber
 
       use_user_git_config
       
@@ -127,10 +152,7 @@ class Jeweler
 
     # This is in a separate method so we can stub it out during testing
     def read_git_config
-      # we could just use Git::Base's .config, but that relies on a repo being around already
-      # ... which we don't have yet, since this is part of a sanity check
-      lib = Git::Lib.new(nil, nil)
-      config = lib.parse_config '~/.gitconfig'
+      Git.global_config
     end
 
   private
@@ -201,7 +223,7 @@ class Jeweler
       template_contents = File.read(File.join(template_dir, source))
       template = ERB.new(template_contents, nil, '<>')
 
-      template_result = template.result(binding)
+      template_result = template.result(binding).gsub(/\n\n\n+/, "\n\n")
 
       File.open(final_destination, 'w') {|file| file.write(template_result)}
 
@@ -261,11 +283,11 @@ class Jeweler
     end
     
     def create_and_push_repo
-      Net::HTTP.post_form URI.parse('http://github.com/repositories'),
+      Net::HTTP.post_form URI.parse('http://github.com/api/v2/yaml/repos/create'),
                                 'login' => github_username,
                                 'token' => github_token,
-                                'repository[description]' => summary,
-                                'repository[name]' => project_name
+                                'description' => summary,
+                                'name' => project_name
       # TODO do a HEAD request to see when it's ready
       @repo.push('origin')
     end

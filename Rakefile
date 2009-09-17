@@ -15,13 +15,28 @@ begin
     gem.description = "Simple and opinionated helper for creating Rubygem projects on GitHub"
     gem.authors = ["Josh Nichols"]
     gem.files.include %w(lib/jeweler/templates/.document lib/jeweler/templates/.gitignore)
-    gem.add_dependency "git", ">= 1.1.1"
+
+    gem.add_dependency "git", ">= 1.2.1"
     gem.add_dependency "rubyforge"
+
     gem.rubyforge_project = "pickles"
+
+    gem.add_development_dependency "thoughtbot-shoulda"
+    gem.add_development_dependency "mhennemeyer-output_catcher"
+    gem.add_development_dependency "rr"
+    gem.add_development_dependency "mocha"
+    gem.add_development_dependency "redgreen"
+  end
+
+  Jeweler::GemcutterTasks.new
+
+  Jeweler::RubyforgeTasks.new do |t|
+    t.doc_task = :yardoc
   end
 rescue LoadError
   puts "Jeweler, or one of its dependencies, is not available. Install it with: sudo gem install jeweler"
 end
+
 
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
@@ -32,13 +47,17 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 
-require 'rake/rdoctask'
-Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'jeweler'
-  rdoc.rdoc_files.include('README.markdown')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+begin
+  require 'yard'
+  YARD::Rake::YardocTask.new(:yardoc) do |t|
+    t.files   = FileList['lib/**/*.rb'].exclude('lib/jeweler/templates/**/*.rb')
+  end
+rescue LoadError
+  task :yardoc do
+    abort "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
+  end
 end
+
 
 begin
   require 'rcov/rcovtask'
@@ -73,34 +92,12 @@ rescue LoadError
   end
 end
 
-begin
-  require 'rake/contrib/sshpublisher'
-  namespace :rubyforge do
-    
-    desc "Release gem and RDoc documentation to RubyForge"
-    task :release => ["rubyforge:release:gem", "rubyforge:release:docs"]
-    
-    namespace :release do
-      desc "Publish RDoc to RubyForge."
-      task :docs => [:rdoc] do
-        config = YAML.load(
-            File.read(File.expand_path('~/.rubyforge/user-config.yml'))
-        )
-
-        host = "#{config['username']}@rubyforge.org"
-        remote_dir = "/var/www/gforge-projects/pickles"
-        local_dir = 'rdoc'
-
-        Rake::SshDirPublisher.new(host, remote_dir, local_dir).upload
-      end
-    end
-  end
-rescue LoadError
-  puts "Rake SshDirPublisher is unavailable or your rubyforge environment is not configured."
-end
-
 if ENV["RUN_CODE_RUN"] == "true"
   task :default => [:test, :features]
 else
   task :default => :test
 end
+
+
+task :test => :check_dependencies
+task :features => :check_dependencies

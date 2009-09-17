@@ -1,21 +1,24 @@
-# Use vendored gem because of limited gem availability on runcoderun
-# This is loosely based on 'vendor everything'.
-Dir[File.join(File.dirname(__FILE__), '..', 'vendor', 'gems', '**')].each do |dir|
-  lib = "#{dir}/lib"
-  $LOAD_PATH.unshift(lib) if File.directory?(lib)
-end
-
 require 'test/unit'
 
 require 'rubygems'
-require 'shoulda'
 begin
   require 'ruby-debug'
 rescue LoadError
 end
 
-require 'rr'
-require 'redgreen'
+begin
+  require 'shoulda'
+  require 'rr'
+  require 'redgreen'
+rescue LoadError => e
+  puts "*" * 80
+  puts "Some dependencies needed to run tests were missing. Run the following command to find them:"
+  puts
+  puts "\trake development_dependencies:check"
+  puts "*" * 80
+  exit 1
+end
+
 require 'time'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib')
@@ -34,8 +37,6 @@ class RubyForgeStub
     @autoconfig = {}
   end
 end
-
-require 'output_catcher'
 
 class Test::Unit::TestCase
   include RR::Adapters::TestUnit unless include?(RR::Adapters::TestUnit)
@@ -69,6 +70,26 @@ class Test::Unit::TestCase
     end
   end
 
+  def self.gemcutter_command_context(description, &block)
+    context description do
+      setup do
+        @command = eval(self.class.name.gsub(/::Test/, '::')).new
+
+        if @command.respond_to? :gemspec_helper=
+          @gemspec_helper = Object.new
+          @command.gemspec_helper = @gemspec_helper
+        end
+
+        if @command.respond_to? :output
+          @output = StringIO.new
+          @command.output = @output
+        end
+      end
+
+      context "", &block
+    end
+  end
+
   def self.rubyforge_command_context(description, &block)
     context description do
       setup do
@@ -92,6 +113,11 @@ class Test::Unit::TestCase
         if @command.respond_to? :output
           @output = StringIO.new
           @command.output = @output
+        end
+
+        if @command.respond_to? :repo
+          @repo = Object.new
+          @command.repo = @repo 
         end
       end
 

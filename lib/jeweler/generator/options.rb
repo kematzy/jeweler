@@ -7,7 +7,8 @@ class Jeweler
         super()
 
         @orig_args = args.clone
-        self[:testing_framework] = :shoulda
+        self[:testing_framework]       = :shoulda
+        self[:documentation_framework] = :rdoc
 
         @opts = OptionParser.new do |o|
           o.banner = "Usage: #{File.basename($0)} [options] reponame\ne.g. #{File.basename($0)} the-perfect-gem"
@@ -44,8 +45,20 @@ class Jeweler
             self[:use_cucumber] = true
           end
 
+          o.on('--reek', 'generate rake task for reek') do
+            self[:use_reek] = true
+          end
+
+          o.on('--roodi', 'generate rake task for roodi') do
+            self[:use_roodi] = true
+          end
+
           o.on('--create-repo', 'create the repository on GitHub') do
             self[:create_repo] = true
+          end
+
+          o.on('--gemcutter', 'setup project for gemcutter') do
+            self[:gemcutter] = true
           end
 
           o.on('--rubyforge', 'setup project for rubyforge') do
@@ -56,8 +69,20 @@ class Jeweler
             self[:summary] = summary
           end
 
+          o.on('--description [DESCRIPTION]', 'specify a description of the project') do |description|
+            self[:description] = description
+          end
+
           o.on('--directory [DIRECTORY]', 'specify the directory to generate into') do |directory|
             self[:directory] = directory
+          end
+
+          o.on('--yard', 'use yard for documentation') do
+            self[:documentation_framework] = :yard
+          end
+
+          o.on('--rdoc', 'use rdoc for documentation') do
+            self[:documentation_framework] = :rdoc
           end
 
           o.on_tail('-h', '--help', 'display this help and exit') do

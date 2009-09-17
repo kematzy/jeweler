@@ -24,7 +24,8 @@ It's easy to get up and running. Update your Rakefile to instantiate a `Jeweler:
       require 'jeweler'
       Jeweler::Tasks.new do |gemspec|
         gemspec.name = "the-perfect-gem"
-        gemspec.summary = "TODO"
+        gemspec.summary = "Summarize your gem"
+        gemspec.description = "Describe your gem"
         gemspec.email = "josh@technicalpickles.com"
         gemspec.homepage = "http://github.com/technicalpickles/the-perfect-gem"
         gemspec.description = "TODO"
@@ -53,6 +54,7 @@ It supports a number of options:
  * --shoulda: generate test_helper.rb and test ready for shoulda (this is the default)
  * --rspec: generate spec_helper.rb and spec ready for rspec
  * --bacon: generate spec_helper.rb and spec ready for bacon
+ * --gemcutter: setup releasing to gemcutter
  * --rubyforge: setup releasing to rubyforge
 
 ### Default options
@@ -98,6 +100,18 @@ It does the following for you:
  * Push to GitHub (which results in a gem being build)
  * Tag the version and push to GitHub
 
+## Releasing to Gemcutter
+
+Jeweler can also handle releasing to [Gemcutter](http://gemcutter.org). There are a few steps you need to do before doing any Gemcutter releases with Jeweler:
+
+ * [Create an account on Gemcutter](http://gemcutter.org/sign_up)
+ * Install the Gemcutter gem: sudo gem install gemcutter
+ * Run 'gemcutter tumble' to set up gemcutter
+
+With all that setup out of the way, you can now release to Gemcutter with impunity. This would release the current version of your gem.
+
+    $ rake gemcutter:release
+
 ## Releasing to RubyForge
 
 Jeweler can also handle releasing to [RubyForge](http://rubyforge.org). There are a few steps you need to do before doing any RubyForge releases with Jeweler:
@@ -117,6 +131,7 @@ With this in place, you now update your Jeweler::Tasks to setup `rubyforge_proje
       Jeweler::Tasks.new do |s|
         s.name = "the-perfect-gem"
         s.summary = "TODO"
+        s.description = "TODO"
         s.email = "josh@technicalpickles.com"
         s.homepage = "http://github.com/technicalpickles/the-perfect-gem"
         s.description = "TODO"

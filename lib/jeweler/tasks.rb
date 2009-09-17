@@ -6,6 +6,28 @@ class Rake::Application
 end
 
 class Jeweler
+  # Rake tasks for managing your gem.
+  #
+  # Here's a basic example of using it:
+  #
+  #   Jeweler::Tasks.new do |gem|
+  #     gem.name = "jeweler"
+  #     gem.summary = "Simple and opinionated helper for creating Rubygem projects on GitHub"
+  #     gem.email = "josh@technicalpickles.com"
+  #     gem.homepage = "http://github.com/technicalpickles/jeweler"
+  #     gem.description = "Simple and opinionated helper for creating Rubygem projects on GitHub"
+  #     gem.authors = ["Josh Nichols"]
+  #   end
+  #
+  # The block variable gem is actually a Gem::Specification, so you can do anything you would normally do with a Gem::Specification. For more details, see the official gemspec reference: http://docs.rubygems.org/read/chapter/20
+  #
+  # Jeweler fills in a few reasonable defaults for you:
+  #
+  # [gem.files] a Rake::FileList of anything that is in git and not gitignored. You can include/exclude this default set, or override it entirely
+  # [gem.test_files] Similar to gem.files, except it's only things under the spec, test, or examples directory.
+  # [gem.extra_rdoc_files] a Rake::FileList including files like README*, ChangeLog*, and LICENSE*
+  # [gem.executables] uses anything found in the bin/ directory. You can override this.
+  #
   class Tasks < ::Rake::TaskLib
     attr_accessor :gemspec, :jeweler
 
@@ -20,7 +42,6 @@ class Jeweler
 
   private
     def define
-      desc "Setup initial version of 0.0.0"
       task :version_required do
         unless jeweler.version_exists?
           abort "Expected VERSION or VERSION.yml to exist. See version:write to create an initial one."
@@ -90,35 +111,25 @@ class Jeweler
       task :release do
         jeweler.release
       end
-      
-      namespace :rubyforge do
-        namespace :release do
-          desc "Release the current gem version to RubyForge."
-          task :gem => [:gemspec, :build] do
-            begin
-              jeweler.release_gem_to_rubyforge
-            rescue NoRubyForgeProjectInGemspecError => e
-              abort "Setting up RubyForge requires that you specify a 'rubyforge_project' in your Jeweler::Tasks declaration"
-            rescue MissingRubyForgePackageError => e
-              abort "Rubyforge reported that the #{e.message} package isn't setup. Run rake rubyforge:setup to do so."
-            rescue RubyForgeProjectNotConfiguredError => e
-              abort "RubyForge reported that #{e.message} wasn't configured. This means you need to run 'rubyforge setup', 'rubyforge login', and 'rubyforge configure', or maybe the project doesn't exist on RubyForge"
-            end
-          end
+
+      desc "Check that runtime and development dependencies are installed" 
+      task :check_dependencies do
+        jeweler.check_dependencies
+      end
+
+      namespace :check_dependencies do
+        desc "Check that runtime dependencies are installed"
+        task :runtime  do
+          jeweler.check_dependencies(:runtime)
         end
 
-        desc "Setup a rubyforge project for this gem"
-        task :setup do
-          begin 
-            jeweler.setup_rubyforge
-          rescue NoRubyForgeProjectInGemspecError => e
-            abort "Setting up RubyForge requires that you specify a 'rubyforge_project' in your Jeweler::Tasks declaration"
-          rescue RubyForgeProjectNotConfiguredError => e
-            abort "The RubyForge reported that #{e.message} wasn't configured. This means you need to run 'rubyforge setup', 'rubyforge login', and 'rubyforge configure', or maybe the project doesn't exist on RubyForge"
-          end
+        desc"Check that development dependencies are installed"
+        task :development do
+          jeweler.check_dependencies(:development)
         end
 
       end
+      
     end
   end
 end

@@ -2,7 +2,7 @@ require 'test_helper'
 
 class TestGenerator < Test::Unit::TestCase
   def build_generator(testing_framework = nil, options = {})
-    stub.instance_of(Git::Lib).parse_config '~/.gitconfig' do
+    stub(Git).global_config() do
       {'user.name' => 'John Doe', 'user.email' => 'john@example.com', 'github.user' => 'johndoe', 'github.token' => 'yyz'}
     end
 
@@ -31,8 +31,12 @@ class TestGenerator < Test::Unit::TestCase
       assert_equal 'the-perfect-gem', build_generator.target_dir
     end
 
-    should "have TODO as default summary" do
-      assert_equal "TODO", build_generator.summary
+    should "have default summary" do
+      assert_equal "TODO: one-line summary of your gem", build_generator.summary
+    end
+
+    should "have default description" do
+      assert_equal "TODO: longer description of your gem", build_generator.description
     end
 
     should "not create repo by default" do
@@ -41,6 +45,14 @@ class TestGenerator < Test::Unit::TestCase
 
     should "not use cucumber by default" do
       assert ! build_generator.should_use_cucumber
+    end
+
+    should "not use reek by default" do
+      assert ! build_generator.should_use_reek
+    end
+
+    should "not use roodi by default" do
+      assert ! build_generator.should_use_roodi
     end
 
     should "raise error for invalid testing frameworks" do
