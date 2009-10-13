@@ -1,73 +1,16 @@
 require 'test_helper'
 
 class TestGenerator < Test::Unit::TestCase
-  def build_generator(testing_framework = nil, options = {})
-    stub(Git).global_config() do
-      {'user.name' => 'John Doe', 'user.email' => 'john@example.com', 'github.user' => 'johndoe', 'github.token' => 'yyz'}
-    end
+  def build_generator(testing_framework = :shoulda, options = {})
+    options = options.merge :project_name => 'the-perfect-gem',
+                            :user_name => 'John Doe',
+                            :user_email => 'john@example.com',
+                            :github_username => 'johndoe',
+                            :github_token => 'yyz',
+                            :documentation_framework => :rdoc
 
     options[:testing_framework] = testing_framework
-    Jeweler::Generator.new('the-perfect-gem', options)
-  end
-
-  context "initialize" do
-    should "raise error if nil repo name given" do
-      assert_raise Jeweler::NoGitHubRepoNameGiven do
-        Jeweler::Generator.new(nil)
-      end
-    end
-
-    should "raise error if blank repo name given" do
-      assert_raise Jeweler::NoGitHubRepoNameGiven do
-        Jeweler::Generator.new("")
-      end
-    end
-
-    should "have shoulda as default framework" do
-      assert_equal :shoulda, build_generator.testing_framework
-    end
-
-    should "have repository name as default target dir" do
-      assert_equal 'the-perfect-gem', build_generator.target_dir
-    end
-
-    should "have default summary" do
-      assert_equal "TODO: one-line summary of your gem", build_generator.summary
-    end
-
-    should "have default description" do
-      assert_equal "TODO: longer description of your gem", build_generator.description
-    end
-
-    should "not create repo by default" do
-      assert ! build_generator.should_create_repo
-    end
-
-    should "not use cucumber by default" do
-      assert ! build_generator.should_use_cucumber
-    end
-
-    should "not use reek by default" do
-      assert ! build_generator.should_use_reek
-    end
-
-    should "not use roodi by default" do
-      assert ! build_generator.should_use_roodi
-    end
-
-    should "raise error for invalid testing frameworks" do
-      assert_raise ArgumentError do
-        build_generator(:zomg_invalid)
-      end
-    end
-  end
-
-  should "have the correct git remote" do
-    assert_equal 'git@github.com:johndoe/the-perfect-gem.git', build_generator.git_remote
-  end
-
-  should "have the correct project homepage" do
-    assert_equal 'http://github.com/johndoe/the-perfect-gem', build_generator.project_homepage
+    Jeweler::Generator.new(options)
   end
 
   should "have the correct constant name" do
@@ -99,9 +42,9 @@ class TestGenerator < Test::Unit::TestCase
     should_have_generator_attribute :default_task, 'test'
     should_have_generator_attribute :feature_support_require, 'test/unit/assertions'
     should_have_generator_attribute :feature_support_extend, 'Test::Unit::Assertions'
-    should_have_generator_attribute :test_pattern, 'test/**/*_test.rb'
-    should_have_generator_attribute :test_filename, 'the-perfect-gem_test.rb'
-    should_have_generator_attribute :test_helper_filename, 'test_helper.rb'
+    should_have_generator_attribute :test_pattern, 'test/**/test_*.rb'
+    should_have_generator_attribute :test_filename, 'test_the-perfect-gem.rb'
+    should_have_generator_attribute :test_helper_filename, 'helper.rb'
   end
 
   context "testunit" do
@@ -111,9 +54,9 @@ class TestGenerator < Test::Unit::TestCase
     should_have_generator_attribute :default_task, 'test'
     should_have_generator_attribute :feature_support_require, 'test/unit/assertions'
     should_have_generator_attribute :feature_support_extend, 'Test::Unit::Assertions'
-    should_have_generator_attribute :test_pattern, 'test/**/*_test.rb'
-    should_have_generator_attribute :test_filename, 'the-perfect-gem_test.rb'
-    should_have_generator_attribute :test_helper_filename, 'test_helper.rb'
+    should_have_generator_attribute :test_pattern, 'test/**/test_*.rb'
+    should_have_generator_attribute :test_filename, 'test_the-perfect-gem.rb'
+    should_have_generator_attribute :test_helper_filename, 'helper.rb'
   end
 
   context "minitest" do
@@ -121,11 +64,11 @@ class TestGenerator < Test::Unit::TestCase
     should_have_generator_attribute :test_task, 'test'
     should_have_generator_attribute :test_dir, 'test'
     should_have_generator_attribute :default_task, 'test'
-    should_have_generator_attribute :feature_support_require, 'mini/test'
-    should_have_generator_attribute :feature_support_extend, 'Mini::Test::Assertions'
-    should_have_generator_attribute :test_pattern, 'test/**/*_test.rb'
-    should_have_generator_attribute :test_filename, 'the-perfect-gem_test.rb'
-    should_have_generator_attribute :test_helper_filename, 'test_helper.rb'
+    should_have_generator_attribute :feature_support_require, 'minitest/unit'
+    should_have_generator_attribute :feature_support_extend, 'MiniTest::Assertions'
+    should_have_generator_attribute :test_pattern, 'test/**/test_*.rb'
+    should_have_generator_attribute :test_filename, 'test_the-perfect-gem.rb'
+    should_have_generator_attribute :test_helper_filename, 'helper.rb'
   end
 
   context "bacon" do

@@ -48,8 +48,8 @@ Feature: git support
     And I have configured git sanely
     When I generate a minitest project named 'the-perfect-gem' that is 'zomg, so good'
 
-    Then 'test/test_helper.rb' was checked in
-    And 'test/the-perfect-gem_test.rb' was checked in
+    Then 'test/helper.rb' was checked in
+    And 'test/test_the-perfect-gem.rb' was checked in
 
   Scenario: rspec
     Given a working directory
@@ -64,16 +64,16 @@ Feature: git support
     And I have configured git sanely
     When I generate a shoulda project named 'the-perfect-gem' that is 'zomg, so good'
 
-    Then 'test/test_helper.rb' was checked in
-    And 'test/the-perfect-gem_test.rb' was checked in
+    Then 'test/helper.rb' was checked in
+    And 'test/test_the-perfect-gem.rb' was checked in
 
   Scenario: testunit
     Given a working directory
     And I have configured git sanely
     When I generate a testunit project named 'the-perfect-gem' that is 'zomg, so good'
 
-    Then 'test/test_helper.rb' was checked in
-    And 'test/the-perfect-gem_test.rb' was checked in
+    Then 'test/helper.rb' was checked in
+    And 'test/test_the-perfect-gem.rb' was checked in
 
   Scenario: micronaut
     Given a working directory

@@ -10,11 +10,11 @@ class Jeweler
       end
 
       def feature_support_require
-        'mini/test'
+        'minitest/unit'
       end
 
       def feature_support_extend
-        'Mini::Test::Assertions'
+        'MiniTest::Assertions'
       end
 
       def test_dir
@@ -26,15 +26,15 @@ class Jeweler
       end
 
       def test_pattern
-        'test/**/*_test.rb'
+        'test/**/test_*.rb'
       end
 
       def test_filename
-        "#{require_name}_test.rb"
+        "test_#{require_name}.rb"
       end
 
       def test_helper_filename
-        "test_helper.rb"
+        "helper.rb"
       end
 
     end

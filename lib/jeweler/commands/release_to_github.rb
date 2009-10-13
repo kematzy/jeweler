@@ -1,6 +1,6 @@
 class Jeweler
   module Commands
-    class Release
+    class ReleaseToGithub
       attr_accessor :gemspec, :version, :repo, :output, :gemspec_helper, :base_dir
 
       def initialize(attributes = {})
@@ -21,21 +21,11 @@ class Jeweler
 
         output.puts "Pushing master to origin"
         repo.push
-
-        tag_release! if release_not_tagged?
       end
-      
+
       def clean_staging_area?
         status = repo.status
         status.added.empty? && status.deleted.empty? && status.changed.empty?
-      end
-
-      def tag_release!
-        output.puts "Tagging #{release_tag}"
-        repo.add_tag(release_tag)
-
-        output.puts "Pushing #{release_tag} to origin"
-        repo.push('origin', release_tag)
       end
 
       def commit_gemspec!
@@ -47,15 +37,6 @@ class Jeweler
       def regenerate_gemspec!
         gemspec_helper.update_version(version)
         gemspec_helper.write
-      end
-
-      def release_tag
-        "v#{version}"
-      end
-
-      def release_not_tagged?
-        tag = repo.tag(release_tag) rescue nil
-        tag.nil?
       end
 
       def gemspec_changed?
@@ -80,7 +61,6 @@ class Jeweler
 
         command
       end
-
     end
   end
 end

@@ -3,6 +3,11 @@ require 'rubygems/specification'
 class Jeweler
   # Extend a Gem::Specification instance with this module to give it Jeweler
   # super-cow powers.
+  #
+  # [files] a Rake::FileList of anything that is in git and not gitignored. You can include/exclude this default set, or override it entirely
+  # [test_files] Similar to gem.files, except it's only things under the spec, test, or examples directory.
+  # [extra_rdoc_files] a Rake::FileList including files like README*, ChangeLog*, and LICENSE*
+  # [executables] uses anything found in the bin/ directory. You can override this.
   module Specification
 
     def self.filelist_attribute(name)
@@ -26,6 +31,7 @@ class Jeweler
     # Assigns the Jeweler defaults to the Gem::Specification
     def set_jeweler_defaults(base_dir)
       Dir.chdir(base_dir) do
+        require 'git'
         if blank?(files) && File.directory?(File.join(base_dir, '.git'))
           repo = Git.open(base_dir)
           self.files = repo.ls_files.keys - repo.lib.ignored_files

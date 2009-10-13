@@ -2,6 +2,11 @@ require 'test_helper'
 
 class TestOptions < Test::Unit::TestCase
 
+  def setup
+    set_default_git_config
+    stub_git_config valid_git_config
+  end
+
   def self.should_have_testing_framework(testing_framework)
     should "use #{testing_framework} for testing" do
       assert_equal testing_framework.to_sym, @options[:testing_framework]
@@ -15,7 +20,7 @@ class TestOptions < Test::Unit::TestCase
   end
 
   def setup_options(*arguments)
-    @options = Jeweler::Generator::Options.new(arguments)
+    @options = Jeweler::Generator::Options.new(["project_name"] + arguments)
   end
 
   def self.for_options(*options)
@@ -31,6 +36,25 @@ class TestOptions < Test::Unit::TestCase
     should_have_docmentation_framework :rdoc
     should 'not create repository' do
       assert ! @options[:create_repo]
+    end
+    should "have project name" do
+      assert_equal "project_name", @options[:project_name]
+    end
+
+    should "use github username from git config" do
+      assert_equal @github_user, @options[:github_username]
+    end
+
+    should "use github token from git config" do
+      assert_equal @github_token, @options[:github_token]
+    end
+
+    should "use user name from git config" do
+      assert_equal @git_name, @options[:user_name]
+    end
+
+    should "use user email from git config" do
+      assert_equal @git_email, @options[:user_email]
     end
   end
 
@@ -129,6 +153,42 @@ class TestOptions < Test::Unit::TestCase
   for_options '--zomg-invalid' do
     should 'be an invalid argument' do
       assert @options[:invalid_argument]
+    end
+  end
+
+  for_options '--user-name', 'myname' do
+    should "set user name" do
+      assert_equal 'myname', @options[:user_name]
+    end
+  end
+
+  for_options '--user-email', 'myname@mydomain.com' do
+    should "set user email" do
+      assert_equal 'myname@mydomain.com', @options[:user_email]
+    end
+  end
+
+  for_options '--homepage', 'http://zomg.com' do
+    should 'set hoempage' do
+      assert_equal 'http://zomg.com', @options[:homepage]
+    end
+  end
+
+  for_options '--git-remote', 'git@my-awesome-domain.com:zomg.git' do
+    should 'set the git remote' do
+      assert_equal 'git@my-awesome-domain.com:zomg.git', @options[:git_remote]
+    end
+  end
+
+  for_options '--github-username', 'mygithub' do
+    should "set github username" do
+      assert_equal 'mygithub', @options[:github_username]
+    end
+  end
+
+  for_options '--github-token', 'mygithubtoken' do
+    should "set github token" do
+      assert_equal 'mygithubtoken', @options[:github_token]
     end
   end
 

@@ -49,7 +49,8 @@ Given /^I have configured git sanely$/ do
   @github_user = 'technicalpickles'
   @github_token = 'zomgtoken'
 
-  Jeweler::Generator.any_instance.stubs(:read_git_config).
+  require 'git'
+  Git.stubs(:global_config).
         returns({
           'user.name' => @user_name,
           'user.email' => @user_email,
@@ -222,10 +223,10 @@ Then /^Rakefile instantiates a (.*)$/ do |task_name|
 end
 
 
-Then /^'test\/test_helper\.rb' should autorun tests$/ do
-  content = File.read(File.join(@working_dir, @name, 'test/test_helper.rb'))
+Then /^'(.+?)' should autorun tests$/ do |test_helper|
+  content = File.read(File.join(@working_dir, @name, test_helper))
 
-  assert_match "Mini::Test.autorun", content
+  assert_match "MiniTest::Unit.autorun", content
 end
 
 Then /^cucumber world extends "(.*)"$/ do |module_to_extend|

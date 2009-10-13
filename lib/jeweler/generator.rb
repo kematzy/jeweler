@@ -4,16 +4,6 @@ require 'erb'
 require 'net/http'
 require 'uri'
 
-require 'jeweler/generator/bacon_mixin'
-require 'jeweler/generator/micronaut_mixin'
-require 'jeweler/generator/minitest_mixin'
-require 'jeweler/generator/rspec_mixin'
-require 'jeweler/generator/shoulda_mixin'
-require 'jeweler/generator/testunit_mixin'
-require 'jeweler/generator/testspec_mixin'
-
-require 'jeweler/generator/rdoc_mixin'
-require 'jeweler/generator/yard_mixin'
 
 class Jeweler
   class NoGitUserName < StandardError
@@ -31,29 +21,43 @@ class Jeweler
   class GitInitFailed < StandardError
   end    
 
+  # Generator for creating a jeweler-enabled project
   class Generator    
-    attr_accessor :target_dir, :user_name, :user_email, :summary,
+    require 'jeweler/generator/options'
+    require 'jeweler/generator/application'
+
+    require 'jeweler/generator/github_mixin'
+
+    require 'jeweler/generator/bacon_mixin'
+    require 'jeweler/generator/micronaut_mixin'
+    require 'jeweler/generator/minitest_mixin'
+    require 'jeweler/generator/rspec_mixin'
+    require 'jeweler/generator/shoulda_mixin'
+    require 'jeweler/generator/testunit_mixin'
+
+    require 'jeweler/generator/rdoc_mixin'
+    require 'jeweler/generator/yard_mixin'
+
+    attr_accessor :target_dir, :user_name, :user_email, :summary, :homepage,
                   :description, :project_name, :github_username, :github_token,
-                  :repo, :should_create_repo, 
+                  :repo, :should_create_remote_repo, 
                   :testing_framework, :documentation_framework,
                   :should_use_cucumber, :should_setup_gemcutter,
                   :should_setup_rubyforge, :should_use_reek, :should_use_roodi,
-                  :development_dependencies
+                  :development_dependencies,
+                  :options
 
-    DEFAULT_TESTING_FRAMEWORK = :shoulda
-    DEFAULT_DOCUMENTATION_FRAMEWORK = :rdoc
+    def initialize(options = {})
+      self.options = options
 
-    def initialize(project_name, options = {})
-      if project_name.nil? || project_name.squeeze.strip == ""
+      self.project_name   = options[:project_name]
+      if self.project_name.nil? || self.project_name.squeeze.strip == ""
         raise NoGitHubRepoNameGiven
       end
 
       self.development_dependencies = []
-
-      self.project_name   = project_name
-
-      self.testing_framework  = (options[:testing_framework] || DEFAULT_TESTING_FRAMEWORK).to_sym
-      self.documentation_framework = options[:documentation_framework] || DEFAULT_DOCUMENTATION_FRAMEWORK
+      self.testing_framework  = options[:testing_framework]
+      self.documentation_framework = options[:documentation_framework]
       begin
         generator_mixin_name = "#{self.testing_framework.to_s.capitalize}Mixin"
         generator_mixin = self.class.const_get(generator_mixin_name)
@@ -70,10 +74,8 @@ class Jeweler
         raise ArgumentError, "Unsupported documentation framework (#{documentation_framework})"
       end
 
-
       self.target_dir             = options[:directory] || self.project_name
 
-      self.should_create_repo     = options[:create_repo]
       self.summary                = options[:summary] || 'TODO: one-line summary of your gem'
       self.description            = options[:description] || 'TODO: longer description of your gem'
       self.should_use_cucumber    = options[:use_cucumber]
@@ -84,30 +86,28 @@ class Jeweler
 
       development_dependencies << "cucumber" if should_use_cucumber
 
-      use_user_git_config
-      
+      self.user_name       = options[:user_name]
+      self.user_email      = options[:user_email]
+      self.homepage        = options[:homepage]
+
+      raise NoGitUserName unless self.user_name
+      raise NoGitUserEmail unless self.user_email
+
+      extend GithubMixin
     end
 
     def run
       create_files
-      gitify
+      create_version_control
       $stdout.puts "Jeweler has prepared your gem in #{target_dir}"
-      if should_create_repo
+      if should_create_remote_repo
         create_and_push_repo
-        $stdout.puts "Jeweler has pushed your repo to #{project_homepage}"
+        $stdout.puts "Jeweler has pushed your repo to #{homepage}"
         enable_gem_for_repo
-        $stdout.puts "Jeweler has enabled gem building for your repo"
+        #$stdout.puts "Jeweler has enabled gem building for your repo"
       end
     end
 
-    def git_remote
-      "git@github.com:#{github_username}/#{project_name}.git"
-    end
-
-    def project_homepage
-      "http://github.com/#{github_username}/#{project_name}"
-    end
-    
     def constant_name
       self.project_name.split(/[-_]/).collect{|each| each.capitalize }.join
     end
@@ -148,13 +148,6 @@ class Jeweler
       File.join(features_dir, 'step_definitions')
     end
 
-  protected
-
-    # This is in a separate method so we can stub it out during testing
-    def read_git_config
-      Git.global_config
-    end
-
   private
     def create_files
       unless File.exists?(target_dir) || File.directory?(target_dir)
@@ -174,8 +167,10 @@ class Jeweler
       touch_in_target           File.join(lib_dir, lib_filename)
 
       mkdir_in_target           test_dir
-      output_template_in_target File.join(testing_framework.to_s, 'helper.rb'), File.join(test_dir, test_helper_filename)
-      output_template_in_target File.join(testing_framework.to_s, 'flunking.rb'), File.join(test_dir, test_filename)
+      output_template_in_target File.join(testing_framework.to_s, 'helper.rb'),
+                                File.join(test_dir, test_helper_filename)
+      output_template_in_target File.join(testing_framework.to_s, 'flunking.rb'),
+                                File.join(test_dir, test_filename)
 
       if should_use_cucumber
         mkdir_in_target           features_dir
@@ -190,39 +185,13 @@ class Jeweler
 
     end
 
-    def use_user_git_config
-      git_config = self.read_git_config
-
-      unless git_config.has_key? 'user.name'
-        raise NoGitUserName
-      end
-      
-      unless git_config.has_key? 'user.email'
-        raise NoGitUserEmail
-      end
-      
-      unless git_config.has_key? 'github.user'
-        raise NoGitHubUser
-      end
-      
-      if should_create_repo
-        unless git_config.has_key? 'github.token'
-          raise NoGitHubToken
-        end
-      end
-
-      self.user_name       = git_config['user.name']
-      self.user_email      = git_config['user.email']
-      self.github_username = git_config['github.user']
-      self.github_token    = git_config['github.token']
-    end
-
     def output_template_in_target(source, destination = source)
       final_destination = File.join(target_dir, destination)
 
       template_contents = File.read(File.join(template_dir, source))
       template = ERB.new(template_contents, nil, '<>')
 
+      # squish extraneous whitespace from some of the conditionals
       template_result = template.result(binding).gsub(/\n\n\n+/, "\n\n")
 
       File.open(final_destination, 'w') {|file| file.write(template_result)}
@@ -248,10 +217,8 @@ class Jeweler
       $stdout.puts "\tcreate\t#{destination}"
     end
 
-    def gitify
-      saved_pwd = Dir.pwd
-      Dir.chdir(target_dir)
-      begin
+    def create_version_control
+      Dir.chdir(target_dir) do
         begin
           @repo = Git.init()
         rescue Git::GitExecuteError => e
@@ -277,8 +244,6 @@ class Jeweler
           puts "Encountered an error while adding origin remote. Maybe you have some weird settings in ~/.gitconfig?"
           raise
         end
-      ensure
-        Dir.chdir(saved_pwd)
       end
     end
     
@@ -292,9 +257,12 @@ class Jeweler
       @repo.push('origin')
     end
 
+    # FIXME This was borked awhile ago, and even more so with gems being disabled
     def enable_gem_for_repo
-      url = "https://github.com/#{github_username}/#{project_name}/update"
-      `curl -F 'login=#{github_username}' -F 'token=#{github_token}' -F 'field=repository_rubygem' -F 'value=1' #{url} 2>/dev/null`
+      $stdout.puts "Visit #{homepage}/edit and click 'Enable RubyGems'"
+      #url = "https://github.com/#{github_username}/#{project_name}/update"
+      #`curl -F 'login=#{github_username}' -F 'token=#{github_token}' -F 'field=repository_rubygem' -F 'value=1' #{url} 2>/dev/null`
+  
       # FIXME use NET::HTTP instead of curl
       #Net::HTTP.post_form URI.parse(url),
                                 #'login' => github_username,

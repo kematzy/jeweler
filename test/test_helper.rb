@@ -14,7 +14,7 @@ rescue LoadError => e
   puts "*" * 80
   puts "Some dependencies needed to run tests were missing. Run the following command to find them:"
   puts
-  puts "\trake development_dependencies:check"
+  puts "\trake check_dependencies:development"
   puts "*" * 80
   exit 1
 end
@@ -155,5 +155,21 @@ class Test::Unit::TestCase
       context "", &block
     end
 
+  end
+
+  def stub_git_config(options = {})
+    stub(Git).global_config() { options }
+  end
+
+  def set_default_git_config
+    @project_name = 'the-perfect-gem'
+    @git_name = 'foo'
+    @git_email = 'bar@example.com'
+    @github_user = 'technicalpickles'
+    @github_token = 'zomgtoken'
+  end
+
+  def valid_git_config
+    { 'user.name' => @git_name, 'user.email' => @git_email, 'github.user' => @github_user, 'github.token' => @github_token }
   end
 end

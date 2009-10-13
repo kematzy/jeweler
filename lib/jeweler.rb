@@ -1,28 +1,29 @@
 require 'date'
-require 'rubygems/user_interaction'
-require 'rubygems/builder'
-require 'rubyforge'
-
-require 'jeweler/errors'
-require 'jeweler/version_helper'
-require 'jeweler/gemspec_helper'
-require 'jeweler/generator'
-require 'jeweler/generator/options'
-require 'jeweler/generator/application'
-
-require 'jeweler/commands'
-
-require 'jeweler/tasks'
-require 'jeweler/gemcutter_tasks'
-require 'jeweler/rubyforge_tasks'
-
-require 'jeweler/specification'
 
 # A Jeweler helps you craft the perfect Rubygem. Give him a gemspec, and he takes care of the rest.
+#
+# See Jeweler::Tasks for examples of how to get started. Additionally, resources are available on the wiki:
+#
+# * http://wiki.github.com/technicalpickles/jeweler/create-a-new-project
+# * http://wiki.github.com/technicalpickles/jeweler/configure-an-existing-project
 class Jeweler
+  require 'jeweler/errors'
+  require 'rubygems/user_interaction'
+
+  autoload :Generator,      'jeweler/generator'
+
+  autoload :Commands,       'jeweler/commands'
+  
+  autoload :VersionHelper,  'jeweler/version_helper'
+  autoload :GemSpecHelper,  'jeweler/gemspec_helper'
+
+  autoload :Tasks,          'jeweler/tasks'
+  autoload :GemcutterTasks, 'jeweler/gemcutter_tasks'
+  autoload :RubyforgeTasks, 'jeweler/rubyforge_tasks'
+  autoload :Specification,  'jeweler/specification'
 
   attr_reader :gemspec, :gemspec_helper, :version_helper
-  attr_accessor :base_dir, :output, :repo, :commit, :rubyforge
+  attr_accessor :base_dir, :output, :repo, :commit
 
   def initialize(gemspec, base_dir = '.')
     raise(GemspecError, "Can't create a Jeweler with a nil gemspec") if gemspec.nil?
@@ -37,7 +38,6 @@ class Jeweler
     @output         = $stdout
     @commit         = true
     @gemspec_helper = GemSpecHelper.new(gemspec, base_dir)
-    @rubyforge      = RubyForge.new
   end
 
   # Major version, as defined by the gemspec's Version module.
@@ -60,7 +60,7 @@ class Jeweler
 
   # Human readable version, which is used in the gemspec.
   def version
-    @version_helper.to_s
+    @gemspec.version || @version_helper.to_s
   end
 
   # Writes out the gemspec
@@ -79,10 +79,12 @@ class Jeweler
     gemspec_helper.valid?
   end
 
+  # Build a gem using the project's latest Gem::Specification
   def build_gem
     Jeweler::Commands::BuildGem.build_for(self).run
   end
 
+  # Install a previously built gem
   def install_gem
     Jeweler::Commands::InstallGem.build_for(self).run
   end
@@ -109,17 +111,22 @@ class Jeweler
   end
 
   # Bumps the version, to the specific major/minor/patch version, writing out the appropriate version.rb, and then reloads it.
-  def write_version(major, minor, patch, options = {})
+  def write_version(major, minor, patch, build, options = {})
     command = Jeweler::Commands::Version::Write.build_for(self)
     command.major = major
     command.minor = minor
     command.patch = patch
+    command.build = build
 
     command.run
   end
 
-  def release
-    Jeweler::Commands::Release.build_for(self).run
+  def release_gem_to_github
+    Jeweler::Commands::ReleaseToGithub.build_for(self).run
+  end
+
+  def release_to_git
+    Jeweler::Commands::ReleaseToGit.build_for(self).run
   end
 
   def release_gem_to_gemcutter
@@ -145,8 +152,12 @@ class Jeweler
     File.exists?(File.join(self.base_dir, '.git'))
   end
 
-  def version_exists?
+  def version_file_exists?
     File.exists?(@version_helper.plaintext_path) || File.exists?(@version_helper.yaml_path)
+  end
+
+  def expects_version_file?
+    gemspec.version.nil?
   end
 
 end

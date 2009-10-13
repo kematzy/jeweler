@@ -26,7 +26,7 @@ When /^I run "([^"]+)" in "([^"]+)"$/ do |command, directory|
   full_path = File.join(@working_dir, directory)
 
   lib_path = File.expand_path 'lib'
-  command.gsub!(/^rake /, "rake -I#{lib_path} ")
+  command.gsub!(/^rake /, "rake --trace -I#{lib_path} ")
 
   assert File.directory?(full_path), "#{full_path} is not a directory"
 
@@ -34,7 +34,7 @@ When /^I run "([^"]+)" in "([^"]+)"$/ do |command, directory|
   @exited_cleanly = $?.exited?
 end
 
-Then /^the updated version, (\d+\.\d+\.\d+), is displayed$/ do |version|
+Then /^the updated version, (.*), is displayed$/ do |version|
   assert_match "Updated version: #{version}", @stdout
 end
 
