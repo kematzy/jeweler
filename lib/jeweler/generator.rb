@@ -33,7 +33,10 @@ class Jeweler
     require 'jeweler/generator/minitest_mixin'
     require 'jeweler/generator/rspec_mixin'
     require 'jeweler/generator/shoulda_mixin'
+    require 'jeweler/generator/testspec_mixin'
     require 'jeweler/generator/testunit_mixin'
+    require 'jeweler/generator/riot_mixin'
+    require 'jeweler/generator/shindo_mixin'
 
     require 'jeweler/generator/rdoc_mixin'
     require 'jeweler/generator/yard_mixin'
@@ -84,7 +87,7 @@ class Jeweler
       self.should_setup_gemcutter = options[:gemcutter]
       self.should_setup_rubyforge = options[:rubyforge]
 
-      development_dependencies << "cucumber" if should_use_cucumber
+      development_dependencies << ["cucumber", ">= 0"] if should_use_cucumber
 
       self.user_name       = options[:user_name]
       self.user_email      = options[:user_email]
@@ -103,8 +106,6 @@ class Jeweler
       if should_create_remote_repo
         create_and_push_repo
         $stdout.puts "Jeweler has pushed your repo to #{homepage}"
-        enable_gem_for_repo
-        #$stdout.puts "Jeweler has enabled gem building for your repo"
       end
     end
 
@@ -172,6 +173,13 @@ class Jeweler
       output_template_in_target File.join(testing_framework.to_s, 'flunking.rb'),
                                 File.join(test_dir, test_filename)
 
+
+      if testing_framework == :rspec
+        output_template_in_target File.join(testing_framework.to_s, 'spec.opts'),
+                                  File.join(test_dir, 'spec.opts')
+
+      end
+
       if should_use_cucumber
         mkdir_in_target           features_dir
         output_template_in_target File.join(%w(features default.feature)), File.join('features', feature_filename)
@@ -185,14 +193,17 @@ class Jeweler
 
     end
 
-    def output_template_in_target(source, destination = source)
-      final_destination = File.join(target_dir, destination)
-
+    def render_template(source)
       template_contents = File.read(File.join(template_dir, source))
-      template = ERB.new(template_contents, nil, '<>')
+      template          = ERB.new(template_contents, nil, '<>')
 
       # squish extraneous whitespace from some of the conditionals
-      template_result = template.result(binding).gsub(/\n\n\n+/, "\n\n")
+      template.result(binding).gsub(/\n\n\n+/, "\n\n")
+    end
+
+    def output_template_in_target(source, destination = source)
+      final_destination = File.join(target_dir, destination)
+      template_result   = render_template(source)
 
       File.open(final_destination, 'w') {|file| file.write(template_result)}
 
@@ -253,23 +264,8 @@ class Jeweler
                                 'token' => github_token,
                                 'description' => summary,
                                 'name' => project_name
-      # TODO do a HEAD request to see when it's ready
+      # TODO do a HEAD request to see when it's ready?
       @repo.push('origin')
     end
-
-    # FIXME This was borked awhile ago, and even more so with gems being disabled
-    def enable_gem_for_repo
-      $stdout.puts "Visit #{homepage}/edit and click 'Enable RubyGems'"
-      #url = "https://github.com/#{github_username}/#{project_name}/update"
-      #`curl -F 'login=#{github_username}' -F 'token=#{github_token}' -F 'field=repository_rubygem' -F 'value=1' #{url} 2>/dev/null`
-  
-      # FIXME use NET::HTTP instead of curl
-      #Net::HTTP.post_form URI.parse(url),
-                                #'login' => github_username,
-                                #'token' => github_token,
-                                #'field' => 'repository_rubygem',
-                                #'value' => '1'
-    end
-
   end
 end

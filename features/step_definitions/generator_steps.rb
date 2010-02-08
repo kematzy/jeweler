@@ -22,14 +22,6 @@ Given /^I want roodi$/ do
   @use_roodi = true
 end
 
-And /^I do not want rubyforge setup$/ do
-  @use_rubyforge = false
-end
-
-And /^I want rubyforge setup$/ do
-  @use_rubyforge = true
-end
-
 Given /^I want to use yard instead of rdoc$/ do
   @documentation_framework = "yard"
 end
@@ -83,7 +75,6 @@ When /^I generate a (.*)project named '((?:\w|-|_)+)' that is '([^']*)' and desc
                '--description', @description,
                 @use_cucumber ? '--cucumber' : nil,
                 @testing_framework ? "--#{@testing_framework}" : nil,
-                @use_rubyforge ? '--rubyforge' : nil,
                 @use_roodi ? '--roodi' : nil,
                 @use_reek ? '--reek' : nil,
                 @documentation_framework ? "--#{@documentation_framework}" : nil,
@@ -126,7 +117,7 @@ end
 Then /^a sane '.gitignore' is created$/ do
   Then "a file named 'the-perfect-gem/.gitignore' is created"
   Then "'coverage' is ignored by git"
-  Then "'*.sw?' is ignored by git"
+  Then "'*.swp' is ignored by git"
   Then "'.DS_Store' is ignored by git"
   Then "'rdoc' is ignored by git"
   Then "'pkg' is ignored by git"
@@ -190,6 +181,18 @@ Then /^'(.*)' should describe '(.*)'$/ do |file, describe_name|
   @spec_content ||= File.read((File.join(@working_dir, @name, file)))
 
   assert_match %Q{describe "#{describe_name}" do}, @spec_content
+end
+
+Then /^'(.*)' should contextualize '(.*)'$/ do |file, describe_name|
+  @spec_content ||= File.read((File.join(@working_dir, @name, file)))
+
+  assert_match %Q{context "#{describe_name}" do}, @spec_content
+end
+
+Then /^'(.*)' should have tests for '(.*)'$/ do |file, describe_name|
+  @tests_content ||= File.read((File.join(@working_dir, @name, file)))
+
+  assert_match %Q{Shindo.tests("#{describe_name}") do}, @tests_content
 end
 
 Then /^'(.*)' requires '(.*)'$/ do |file, lib|

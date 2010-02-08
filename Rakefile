@@ -12,17 +12,18 @@ Jeweler::Tasks.new do |gem|
   gem.authors = ["Josh Nichols"]
   gem.files.include %w(lib/jeweler/templates/.document lib/jeweler/templates/.gitignore)
 
-  gem.add_dependency "git", ">= 1.2.4"
-  gem.add_dependency "rubyforge", ">= 2.0.0"
+  gem.add_dependency "git", ">= 1.2.5"
   gem.add_dependency "gemcutter", ">= 0.1.0"
 
-  gem.rubyforge_project = "pickles"
-
-  gem.add_development_dependency "thoughtbot-shoulda"
+  gem.add_development_dependency "shoulda"
   gem.add_development_dependency "mhennemeyer-output_catcher"
   gem.add_development_dependency "rr"
   gem.add_development_dependency "mocha"
   gem.add_development_dependency "redgreen"
+  gem.add_development_dependency "devver-construct"
+
+  gem.add_development_dependency "yard"
+  gem.add_development_dependency "cucumber"
 end
 
 Jeweler::GemcutterTasks.new
@@ -47,22 +48,18 @@ begin
     t.files   = FileList['lib/**/*.rb'].exclude('lib/jeweler/templates/**/*.rb')
   end
 rescue LoadError
-  task :yardoc do
-    abort "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
-  end
+  task :yardoc => :check_dependencies
 end
 
 
 begin
   require 'rcov/rcovtask'
-  Rcov::RcovTask.new(:rcov) do |rcov|
+  Rcov::RcovTask.new(:rcov => :check_dependencies) do |rcov|
     rcov.libs << 'test'
     rcov.pattern = 'test/**/test_*.rb'
   end
-rescue LoadError
-  task :rcov do
-    abort "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
-  end
+rescue
+  task :rcov => :check_dependencies
 end
 
 begin
@@ -76,13 +73,9 @@ begin
     end
   end
 rescue LoadError
-  task :features do
-    abort "Cucumber is not available. In order to run features, you must: sudo gem install cucumber"
-  end
+  task :features => :check_dependencies
   namespace :features do
-    task :pretty do
-      abort "Cucumber is not available. In order to run features, you must: sudo gem install cucumber"
-    end
+    task :pretty => :check_dependencies
   end
 end
 

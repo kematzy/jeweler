@@ -1,41 +1,40 @@
 class Jeweler
   class Generator
-    module BaconMixin
-
+    module RiotMixin
       def self.extended(generator)
-        generator.development_dependencies << ["bacon", ">= 0"]
+        generator.development_dependencies << ["riot", ">= 0"]
       end
 
       def default_task
-        'spec'
+        'test'
       end
 
       def feature_support_require
-        'test/unit/assertions'
+        'riot/context'
       end
 
       def feature_support_extend
-        'Test::Unit::Assertions' # NOTE can't use bacon inside of cucumber actually
+        'Riot::Context'
       end
 
       def test_dir
-        'spec'
+        'test'
       end
 
       def test_task
-        'spec'
+        'test'
       end
 
       def test_pattern
-        'spec/**/*_spec.rb'
+        'test/**/*_test.rb'
       end
 
       def test_filename
-        "#{require_name}_spec.rb"
+        "#{require_name}_test.rb"
       end
 
       def test_helper_filename
-        "spec_helper.rb"
+        "teststrap.rb"
       end
 
     end

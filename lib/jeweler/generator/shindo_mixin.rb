@@ -1,41 +1,42 @@
 class Jeweler
   class Generator
-    module BaconMixin
-
+    module ShindoMixin
       def self.extended(generator)
-        generator.development_dependencies << ["bacon", ">= 0"]
+        generator.development_dependencies << ["shindo", ">= 0"]
       end
 
       def default_task
-        'spec'
+        'tests'
       end
 
       def feature_support_require
-        'test/unit/assertions'
+        # 'test/unit/assertions'
+        nil
       end
 
       def feature_support_extend
-        'Test::Unit::Assertions' # NOTE can't use bacon inside of cucumber actually
+        # 'Test::Unit::Assertions'
+        nil
       end
 
       def test_dir
-        'spec'
+        'tests'
       end
 
       def test_task
-        'spec'
+        'tests'
       end
 
       def test_pattern
-        'spec/**/*_spec.rb'
+        'tests/**/*_tests.rb'
       end
 
       def test_filename
-        "#{require_name}_spec.rb"
+        "#{require_name}_tests.rb"
       end
 
       def test_helper_filename
-        "spec_helper.rb"
+        "tests_helper.rb"
       end
 
     end

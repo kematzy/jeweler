@@ -1,20 +1,18 @@
-## OS STUFF
-.DS_Store
-
-## TM SPECIFIC
-*.tmproj
-tmtags
-
-## PROJECT::GENERAL
-
-## PROJECT::SPECIFIC
-*.sw?
+# rcov generated
 coverage
-rdoc
+
+# jeweler generated
 pkg
+
+# yard generated
+doc
+.yardoc
+
+# ctags generated
 tags
+
+# tmp directories used during testing
 test/tmp
 test/jeweler/version_tmp
 test/version_tmp
 tmp
-.yardoc

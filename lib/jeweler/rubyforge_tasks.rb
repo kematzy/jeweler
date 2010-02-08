@@ -2,7 +2,7 @@ require 'rake'
 require 'rake/tasklib'
 
 class Jeweler
-  # Rake tasks for putting a Jeweler gem on Rubyforge.
+  # (Mostly deprecated) Rake tasks for putting a Jeweler gem on Rubyforge.
   #
   # Jeweler::Tasks.new needs to be used before this.
   #
@@ -29,9 +29,8 @@ class Jeweler
     attr_accessor :jeweler
 
     def initialize
-      yield self if block_given?
 
-      self.doc_task = :rdoc if self.doc_task == nil # be sure to allow it to be set to false, to allow disabling
+      yield self if block_given?
 
       define
     end
@@ -52,18 +51,8 @@ class Jeweler
       namespace :rubyforge do
 
         namespace :release do
-          desc "Release the current gem version to RubyForge."
-          task :gem => [:gemspec, :build] do
-            begin
-              jeweler.release_gem_to_rubyforge
-            rescue NoRubyForgeProjectInGemspecError => e
-              abort "Setting up RubyForge requires that you specify a 'rubyforge_project' in your Jeweler::Tasks declaration"
-            rescue MissingRubyForgePackageError => e
-              abort "Rubyforge reported that the #{e.message} package isn't setup. Run rake rubyforge:setup to do so."
-            rescue RubyForgeProjectNotConfiguredError => e
-              abort "RubyForge reported that #{e.message} wasn't configured. This means you need to run 'rubyforge setup', 'rubyforge login', and 'rubyforge configure', or maybe the project doesn't exist on RubyForge"
-            end
-          end
+          desc "Pretend to release the current gem version to RubyForge, but actually release to Gemcutter."
+          task :gem => 'gemcutter:release'
 
           if publish_documentation?
             desc "Publish docs to RubyForge."
@@ -88,22 +77,10 @@ class Jeweler
         end
 
 
-        desc "Release gem and RDoc documentation to RubyForge"
-        task :release => "rubyforge:release:gem"
-        task :release => "rubyforge:release:docs" if publish_documentation?
-          
-
-        desc "Setup a rubyforge project for this gem"
-        task :setup do
-          begin 
-            jeweler.setup_rubyforge
-          rescue NoRubyForgeProjectInGemspecError => e
-            abort "Setting up RubyForge requires that you specify a 'rubyforge_project' in your Jeweler::Tasks declaration"
-          rescue RubyForgeProjectNotConfiguredError => e
-            abort "The RubyForge reported that #{e.message} wasn't configured. This means you need to run 'rubyforge setup', 'rubyforge login', and 'rubyforge configure', or maybe the project doesn't exist on RubyForge"
-          end
+        if publish_documentation?
+          desc "Release RDoc documentation to RubyForge"
+          task :release => "rubyforge:release:docs"
         end
-
       end
 
       task :release => 'rubyforge:release'

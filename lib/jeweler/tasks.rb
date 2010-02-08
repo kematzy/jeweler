@@ -68,12 +68,12 @@ class Jeweler
       end
 
       desc "Build gem"
-      task :build do
+      task :build => :gemspec do
         jeweler.build_gem
       end
 
-      desc "Install gem using sudo"
-      task :install => ['check_dependencies:runtime', :build] do
+      desc "Install gem"
+      task :install => [:build] do
         jeweler.install_gem
       end
 
@@ -133,7 +133,12 @@ class Jeweler
         end
       end
 
+      desc "Release gem"
+      task :release do
+      end
+
       namespace :github do
+        desc "Release Gem to GitHub"
         task :release do
           jeweler.release_gem_to_github
         end
@@ -142,12 +147,22 @@ class Jeweler
       task :release => 'github:release'
 
       namespace :git do
+        desc "Tag a release in Git"
         task :release do
           jeweler.release_to_git
         end
       end
 
       task :release => 'git:release'
+
+      namespace :gemcutter do
+        desc "Release gem to Gemcutter"
+        task :release => [:gemspec, :build] do
+          jeweler.release_gem_to_gemcutter
+        end
+      end
+
+      task :release => 'gemcutter:release'
 
       desc "Check that runtime and development dependencies are installed" 
       task :check_dependencies do

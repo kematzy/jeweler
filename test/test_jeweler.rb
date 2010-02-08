@@ -3,7 +3,7 @@ require 'test_helper'
 class TestJeweler < Test::Unit::TestCase
 
   def build_jeweler(base_dir = nil)
-    base_dir ||= non_git_dir_path
+    base_dir ||= git_dir_path
     FileUtils.mkdir_p base_dir
 
     Jeweler.new(build_spec, base_dir)
@@ -46,6 +46,11 @@ class TestJeweler < Test::Unit::TestCase
 
     jeweler = build_jeweler(non_git_dir_path)
     assert ! jeweler.in_git_repo?, "jeweler doesn't know that #{jeweler.base_dir} is not a git repository"
+  end
+
+  should "find the base repo" do
+    jeweler = build_jeweler(File.dirname(File.expand_path(__FILE__)))
+    assert_equal File.dirname(File.dirname(File.expand_path(__FILE__))), jeweler.git_base_dir
   end
 
   should "build and run write gemspec command when writing gemspec" do
@@ -150,18 +155,6 @@ class TestJeweler < Test::Unit::TestCase
 
     jeweler.release_to_git
   end
-
-  should "build and run release to rubyforge command when running release to rubyforge" do
-    jeweler = build_jeweler
-
-    command = Object.new
-    mock(command).run
-
-    mock(Jeweler::Commands::ReleaseToRubyforge).build_for(jeweler) { command }
-
-    jeweler.release_gem_to_rubyforge
-  end
-
 
   should "respond to gemspec_helper" do
     assert_respond_to build_jeweler, :gemspec_helper

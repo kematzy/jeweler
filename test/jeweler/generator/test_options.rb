@@ -34,9 +34,11 @@ class TestOptions < Test::Unit::TestCase
     setup { setup_options }
     should_have_testing_framework :shoulda
     should_have_docmentation_framework :rdoc
+
     should 'not create repository' do
       assert ! @options[:create_repo]
     end
+
     should "have project name" do
       assert_equal "project_name", @options[:project_name]
     end
@@ -58,16 +60,12 @@ class TestOptions < Test::Unit::TestCase
     end
   end
 
-  for_options '--shoulda' do
-    should_have_testing_framework :shoulda
-  end
-
   for_options "--bacon" do
     should_have_testing_framework :bacon
   end
 
-  for_options "--testunit" do
-    should_have_testing_framework :testunit
+  for_options '--micronaut' do
+    should_have_testing_framework :micronaut
   end
 
   for_options '--minitest' do
@@ -78,8 +76,16 @@ class TestOptions < Test::Unit::TestCase
     should_have_testing_framework :rspec
   end
 
-  for_options '--micronaut' do
-    should_have_testing_framework :micronaut
+  for_options '--shoulda' do
+    should_have_testing_framework :shoulda
+  end
+
+  for_options "--testunit" do
+    should_have_testing_framework :testunit
+  end
+
+  for_options "--testspec" do
+    should_have_testing_framework :testspec
   end
 
   for_options '--cucumber' do
@@ -103,12 +109,6 @@ class TestOptions < Test::Unit::TestCase
   for_options '--create-repo' do
     should 'create repository' do
       assert @options[:create_repo]
-    end
-  end
-
-  for_options '--rubyforge' do
-    should 'enable rubyforge' do
-      assert @options[:rubyforge]
     end
   end
 

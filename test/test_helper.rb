@@ -1,6 +1,8 @@
 require 'test/unit'
 
 require 'rubygems'
+require 'rake'
+
 begin
   require 'ruby-debug'
 rescue LoadError
@@ -10,6 +12,8 @@ begin
   require 'shoulda'
   require 'rr'
   require 'redgreen'
+  require 'construct'
+  require 'git'
 rescue LoadError => e
   puts "*" * 80
   puts "Some dependencies needed to run tests were missing. Run the following command to find them:"
@@ -27,7 +31,7 @@ require 'jeweler'
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'shoulda_macros/jeweler_macros'
 
-TMP_DIR = File.expand_path('../tmp', __FILE__)
+TMP_DIR = '/tmp/jeweler_test'
 FIXTURE_DIR = File.expand_path('../fixtures', __FILE__)
 
 class RubyForgeStub
@@ -40,6 +44,7 @@ end
 
 class Test::Unit::TestCase
   include RR::Adapters::TestUnit unless include?(RR::Adapters::TestUnit)
+  include Construct::Helpers
 
   def tmp_dir
     TMP_DIR

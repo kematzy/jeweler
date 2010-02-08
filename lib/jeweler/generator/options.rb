@@ -43,12 +43,24 @@ class Jeweler
             self[:testing_framework] = :bacon
           end
 
+          o.on('--testspec', 'generate test/spec tests') do
+            self[:testing_framework] = :testspec
+          end
+
           o.on('--minitest', 'generate minitest tests') do
             self[:testing_framework] = :minitest
           end
 
           o.on('--micronaut', 'generate micronaut examples') do
             self[:testing_framework] = :micronaut
+          end
+
+          o.on('--riot', 'generate riot tests') do
+            self[:testing_framework] = :riot
+          end
+
+          o.on('--shindo', 'generate shindo tests') do
+            self[:testing_framework] = :shindo
           end
 
           o.separator ""
@@ -68,14 +80,6 @@ class Jeweler
           end
 
           o.separator ""
-
-          o.on('--gemcutter', 'setup project for gemcutter') do
-            self[:gemcutter] = true
-          end
-
-          o.on('--rubyforge', 'setup project for rubyforge') do
-            self[:rubyforge] = true
-          end
 
           o.on('--summary [SUMMARY]', 'specify the summary of the project') do |summary|
             self[:summary] = summary
